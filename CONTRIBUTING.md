@@ -69,4 +69,5 @@ npm publish --access public
 
 Then, on npmjs.com, the package's **Settings → Trusted publishing**: GitHub Actions, organization
 `itriumid`, repository `palettes`, workflow `release.yml`. Every version after that comes from
-the workflow.
+the workflow. (Pushing the first version's tag still runs it; it sees the version is already on
+npm and stops there.)
