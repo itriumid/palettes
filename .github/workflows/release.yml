@@ -57,8 +57,21 @@ jobs:
       - name: Check every palette's contrast
         run: pnpm test
 
+      # A version that's already on npm is left alone, so the first version (published by hand,
+      # see CONTRIBUTING.md) can still be tagged, and a release can be run again safely.
+      - name: Check whether this version is published
+        id: published
+        run: |
+          name=$(jq -r .name package.json)
+          version=$(jq -r .version package.json)
+          if npm view "$name@$version" version > /dev/null 2>&1; then
+            echo "::notice::$name@$version is already on npm. Nothing to publish."
+            echo "already=true" >> "$GITHUB_OUTPUT"
+          fi
+
       # Trusted publishing needs npm 11.5.1 or later.
       - name: Publish
+        if: steps.published.outputs.already != 'true'
         run: |
           npm install --global npm@11
           npm publish --access public
