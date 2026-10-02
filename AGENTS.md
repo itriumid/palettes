@@ -53,13 +53,33 @@ reopened — and skip it otherwise.
 
 ## This repository
 
-<!--
-  Repository-specific instructions go here and are owned by this repository. Nothing syncs
-  this file back to the handbook, so edit freely. Good things to put here:
-    - what this project is, and its stack
-    - build, test and lint commands, and which of them to run before calling a change done
-    - known gotchas specific to this codebase
-  Anything that would apply to every repository belongs in the handbook instead.
--->
+`@itrium/palettes`, the npm package with the color palettes Itrium's free applications share
+(Honk and Hindsight): the color tokens (`src/lib/palettes.css`), the palette list
+(`src/lib/palettes.ts`), the `Theme` store and two Svelte pickers, and the contrast checker
+(`src/lib/check.ts`, `@itrium/palettes/check`) that this repository and each application run.
+`svelte-package` builds `src/lib` into `dist/`, which is what's published.
 
-_To be filled in._
+- **Every palette passes level AA in every theme state** (`.handbook/conventions/reference/brand.md`,
+  Other palettes). Never weaken a threshold or a pairing to make a color pass; change the color,
+  and write the adaptation down next to it.
+- **The checker has to fail what it should.** `tests/palettes.test.mjs` feeds it broken
+  palettes; a change to the checker keeps those tests failing the broken input.
+- **Colors only.** Spacing, radii and fonts belong to each application. The components fall back
+  to fixed values when an application doesn't define them.
+- **`palettes.ts` and `check.ts` import nothing but each other**, so Node can run the checker
+  without a bundler. The main entry includes the Svelte components; Node code imports
+  `@itrium/palettes/check` or `@itrium/palettes/palettes`.
+- **A token is part of the API.** Renaming or removing one breaks every application that uses it:
+  a minor version before 1.0.0, a major one after, with the replacement in the release notes.
+
+### Commands
+
+| What | Command |
+| --- | --- |
+| Install | `pnpm install` |
+| Type-check | `pnpm check` |
+| Build, then run every check | `pnpm test` |
+| See every palette | `pnpm build`, serve the repository, open `/preview/` |
+
+Before calling a change done, run `pnpm check` and `pnpm test`, and look at the preview.
+Releasing (a `v*` tag publishes to npm through trusted publishing) is in `CONTRIBUTING.md`.
