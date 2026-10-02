@@ -1,0 +1,6 @@
+.handbook
+node_modules
+/dist
+.DS_Store
+/preview/screenshot.png
+/.svelte-kit
