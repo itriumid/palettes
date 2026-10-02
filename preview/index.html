@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Itrium palettes</title>
+    <style>
+      body { margin: 0; padding: 16px; background: #808080; font: 13px system-ui, sans-serif; }
+      .grid { display: grid; grid-template-columns: repeat(2, 460px); gap: 12px; }
+      iframe { width: 460px; height: 150px; border: 0; border-radius: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="grid" id="grid"></div>
+    <script type="module">
+      // Every palette in light and dark, from the built package: `pnpm build` first.
+      import { PALETTES } from "../dist/palettes.js";
+      const grid = document.getElementById("grid");
+      for (const palette of PALETTES) {
+        for (const theme of ["light", "dark"]) {
+          const frame = document.createElement("iframe");
+          frame.title = `${palette.label}, ${theme}`;
+          frame.src = `sample.html?${new URLSearchParams({ palette: palette.id, theme, label: palette.label })}`;
+          grid.append(frame);
+        }
+      }
+    </script>
+  </body>
+</html>
