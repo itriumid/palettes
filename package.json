@@ -1,6 +1,6 @@
 {
   "name": "@itrium/palettes",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Itrium's color palettes, Svelte pickers for the theme and palette, and the contrast check every palette passes",
   "license": "MIT",
   "type": "module",
