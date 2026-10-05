@@ -7,7 +7,7 @@
 // working out which rules apply the way the browser's cascade would, so a new palette or a
 // changed color can't ship without passing.
 
-import { DEFAULT_PALETTE, PALETTES, storageKeys } from "./palettes.js";
+import { CODE_COLORS, DEFAULT_PALETTE, PALETTES, TERMINAL_BACKGROUND_SHADES, storageKeys } from "./palettes.js";
 
 /** This package's stylesheet, for `readFileSync`. */
 export const STYLESHEET_URL = new URL("./palettes.css", import.meta.url);
@@ -247,6 +247,46 @@ export function paletteProblems(css: string): string[] {
         if (JSON.stringify(own) === JSON.stringify(rhodonite)) {
           problems.push(`${palette}: has no ${scheme} colors of its own`);
         }
+      }
+    }
+  }
+  return problems;
+}
+
+/**
+ * Everything wrong with Rhodonite's code colors (`CODE_COLORS`) against this stylesheet: every
+ * syntax color at 4.5:1 on each surface code sits on (the background, the current line and a
+ * selected row, menus), and every terminal color at 4.5:1 on the background, except the
+ * background shades. Takes the colors so a test can feed it broken ones. An empty list means
+ * they all pass.
+ */
+export function codeColorProblems(css: string, codeColors: typeof CODE_COLORS = CODE_COLORS): string[] {
+  const problems: string[] = [];
+  for (const scheme of ["dark", "light"] as const) {
+    const tokens = tokensFor(css, { palette: DEFAULT_PALETTE, theme: scheme, system: scheme });
+    const { syntax, terminal } = codeColors[scheme];
+    const shades: readonly string[] = TERMINAL_BACKGROUND_SHADES[scheme];
+
+    const pairs: [string, string, string][] = [];
+    for (const [name, color] of Object.entries(syntax)) {
+      for (const background of ["--bg", "--surface", "--elevated"]) pairs.push([`syntax ${name}`, color, background]);
+    }
+    for (const [name, color] of Object.entries(terminal)) {
+      if (!shades.includes(name)) pairs.push([`terminal ${name}`, color, "--bg"]);
+    }
+
+    for (const [label, color, background] of pairs) {
+      const foreground = channels(color);
+      const surface = channels(tokens[background] ?? "");
+      if (!foreground || !surface) {
+        problems.push(`code colors, ${scheme}: ${foreground ? background : label} is not a six-digit hex color`);
+        continue;
+      }
+      const ratio = contrast(foreground, surface);
+      if (ratio < TEXT) {
+        // Rounded down, so a failure never reads as the number it needed.
+        const shown = (Math.floor(ratio * 100) / 100).toFixed(2);
+        problems.push(`code colors, ${scheme}: ${label} on ${background} is ${shown}:1, needs ${TEXT}:1`);
       }
     }
   }
