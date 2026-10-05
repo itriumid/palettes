@@ -151,6 +151,37 @@ surfaces on `mantle`, elevated controls on `surface0`, borders on `surface1`, mu
 `subtext1`, and `mauve` as the accent, the default in Catppuccin's own ports. Text on the accent
 is `crust` in the dark flavors and Latte's `base` in light mode.
 
+## Code colors
+
+Rhodonite also has colors for code: syntax highlighting and the sixteen terminal colors, for
+editor and terminal themes like the
+[Rhodonite editor theme](https://github.com/itriumid/vscode-theme-rhodonite). Applications
+don't use them. They're in `CODE_COLORS`, from `@itrium/palettes/palettes`:
+
+```js
+import { CODE_COLORS } from "@itrium/palettes/palettes";
+
+CODE_COLORS.dark.syntax.sage; // "#a9c9a0"
+CODE_COLORS.light.terminal.brightBlack; // "#6b6b6b"
+```
+
+| Syntax | Dark | Light |
+| --- | --- | --- |
+| Pink | `#FEBFCA` | `#A84D60` |
+| Rose | `#F58C9D` | `#B03A4F` |
+| Sage | `#A9C9A0` | `#3F7339` |
+| Sand | `#E6CF98` | `#7F6216` |
+| Blue | `#9FB5D8` | `#3A5F93` |
+| Teal | `#9DCEC7` | `#2F7069` |
+| Punctuation | `#D4D4D4` | `#4A4A4A` |
+
+The terminal colors use the same hues, with brighter variants on dark and deeper ones on light.
+Light mode's pink is a deep rose, because pink is never text on a light background.
+`codeColorProblems`, from `@itrium/palettes/check`, checks every syntax color at 4.5:1 on the
+background, surface and elevated colors, and every terminal color at 4.5:1 on the background.
+The exceptions are black on dark and white on light, which are background shades by convention
+(`TERMINAL_BACKGROUND_SHADES`).
+
 ## Adding a palette
 
 1. Add it to `PALETTES` in `src/lib/palettes.ts`.

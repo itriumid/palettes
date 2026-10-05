@@ -7,11 +7,12 @@ import { readFileSync } from "node:fs";
 import {
   STYLESHEET_URL,
   accentLineProblems,
+  codeColorProblems,
   paletteProblems,
   prePaintProblems,
   tokensFor,
 } from "../dist/check.js";
-import { PALETTES } from "../dist/palettes.js";
+import { CODE_COLORS, PALETTES } from "../dist/palettes.js";
 
 const css = readFileSync(STYLESHEET_URL, "utf8");
 
@@ -75,5 +76,20 @@ test("app.html has to read both keys before the first paint", () => {
   assert.deepEqual(prePaintProblems(html, "hindsight"), [
     "app.html doesn't read hindsight:theme before the first paint",
     "app.html doesn't read hindsight:palette before the first paint",
+  ]);
+});
+
+test("Rhodonite's code colors meet level AA on every surface code sits on", () => {
+  assert.deepEqual(codeColorProblems(css), []);
+});
+
+test("the check catches a faint code color, and skips only the background shades", () => {
+  const faint = structuredClone(CODE_COLORS);
+  faint.dark.syntax.rose = "#f4889a"; // 4.49:1 on --elevated
+  faint.light.terminal.yellow = "#e6cf98";
+  faint.dark.terminal.black = "#2b2b2b"; // a background shade: allowed
+  assert.deepEqual(codeColorProblems(css, faint), [
+    "code colors, dark: syntax rose on --elevated is 4.49:1, needs 4.5:1",
+    "code colors, light: terminal yellow on --bg is 1.46:1, needs 4.5:1",
   ]);
 });

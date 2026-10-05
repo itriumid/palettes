@@ -57,11 +57,17 @@ reopened — and skip it otherwise.
 (Honk and Hindsight): the color tokens (`src/lib/palettes.css`), the palette list
 (`src/lib/palettes.ts`), the `Theme` store and two Svelte pickers, and the contrast checker
 (`src/lib/check.ts`, `@itrium/palettes/check`) that this repository and each application run.
+`palettes.ts` also holds Rhodonite's code colors (`CODE_COLORS`: syntax and the sixteen
+terminal colors), which the editor and terminal themes generate from; applications don't use
+them.
 `svelte-package` builds `src/lib` into `dist/`, which is what's published.
 
 - **Every palette passes level AA in every theme state** (`.handbook/conventions/reference/brand.md`,
   Other palettes). Never weaken a threshold or a pairing to make a color pass; change the color,
   and write the adaptation down next to it.
+- **Code colors pass too.** `codeColorProblems` checks every syntax color on the background,
+  surface and elevated colors, and every terminal color on the background. Changing one changes
+  the editor theme the next time it updates; say so in the release notes.
 - **The checker has to fail what it should.** `tests/palettes.test.mjs` feeds it broken
   palettes; a change to the checker keeps those tests failing the broken input.
 - **Colors only.** Spacing, radii and fonts belong to each application. The components fall back
