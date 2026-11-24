@@ -46,16 +46,19 @@ what to use instead.
 ## Releasing
 
 1. Set the version in `package.json` in a pull request, and merge it.
-2. Tag the merge commit and push the tag:
+2. Draft the release on GitHub, with notes generated from the pull requests since the last
+   version, grouped by their `type:` labels (`.github/release.yml`; chores are left out):
 
    ```sh
-   git tag -a v0.2.0 -m "Palettes 0.2.0"
-   git push origin v0.2.0
+   gh release create v0.4.0 --draft --target main --generate-notes --title "Palettes 0.4.0"
    ```
 
-3. `release.yml` checks the tag matches `package.json`, runs the checks again, and publishes to
-   npm through trusted publishing, with a provenance attestation.
-4. Update the applications in pull requests of their own, so their checks run on the new
+   A draft is private and makes no tag yet.
+3. Read the notes in the draft and edit them: add a line for anything an application has to do.
+4. Publish the release. GitHub makes the tag, and `release.yml` checks the tag matches
+   `package.json`, runs the checks again, and publishes to npm through trusted publishing, with a
+   provenance attestation. The version, its tag and its notes go public together.
+5. Update the applications in pull requests of their own, so their checks run on the new
    version.
 
 **The first version** can't use trusted publishing, because npm only lets a package that
@@ -69,5 +72,5 @@ npm publish --access public
 
 Then, on npmjs.com, the package's **Settings → Trusted publishing**: GitHub Actions, organization
 `itriumid`, repository `palettes`, workflow `release.yml`. Every version after that comes from
-the workflow. (Pushing the first version's tag still runs it; it sees the version is already on
-npm and stops there.)
+the workflow. (Publishing a release for the first version still runs it; it sees the version is
+already on npm and stops there.)
