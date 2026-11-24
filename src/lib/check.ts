@@ -300,15 +300,26 @@ export function codeColorProblems(css: string, codeColors: typeof CODE_COLORS = 
  * The contrast checks only cover `--accent-edge` if lines use it, so a border, outline,
  * underline or shadow in the accent color has to name `--accent-edge`, not `--accent`. So does
  * `accent-color`: a checked box, radio button or slider shows a state, and light Rhodonite's
- * pink is far too faint for that on white. Takes the application's stylesheets and components;
- * returns `file:line: text` for each offender.
+ * pink is far too faint for that on white. Lines are found written both ways: as CSS
+ * declarations (`border: 1px solid var(--accent)`) and as Tailwind classes that draw one
+ * (`border-accent`, `border-b-accent`, `ring-accent`, `decoration-accent`, `divide-accent`,
+ * `outline-accent`, `shadow-accent`, `accent-accent`), where `-accent-edge` is the one to use.
+ * Takes the application's stylesheets and components; returns `file:line: text` for each
+ * offender: the declaration, or the class.
  */
 export function accentLineProblems(files: { name: string; text: string }[]): string[] {
-  const line = /(border[a-z-]*|outline[a-z-]*|text-decoration[a-z-]*|box-shadow|accent-color)\s*:[^;]*var\(--accent\)/;
+  const declaration = /(border[a-z-]*|outline[a-z-]*|text-decoration[a-z-]*|box-shadow|accent-color)\s*:[^;]*var\(--accent\)/;
+  // A line-drawing utility ending in plain `-accent`, as a whole class: after a space, a quote, a
+  // backtick or a variant's colon, and not followed by more of a name (so `-accent-edge` passes).
+  const utility = /(?:^|[\s"'`:])((?:border|outline|ring|decoration|divide|shadow|accent)(?:-[trblxyse])?-accent)(?![\w-])/;
   const problems: string[] = [];
   for (const { name, text } of files) {
     text.split("\n").forEach((content, index) => {
-      if (line.test(content)) problems.push(`${name}:${index + 1}: ${content.trim()}`);
+      if (declaration.test(content)) problems.push(`${name}:${index + 1}: ${content.trim()}`);
+      else {
+        const found = utility.exec(content);
+        if (found) problems.push(`${name}:${index + 1}: ${found[1]}`);
+      }
     });
   }
   return problems;

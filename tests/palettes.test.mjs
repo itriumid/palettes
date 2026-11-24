@@ -78,6 +78,20 @@ test("accent lines and accent-color have to use --accent-edge", () => {
   ]);
 });
 
+test("accent lines written as Tailwind classes have to use -accent-edge too", () => {
+  const files = [
+    { name: "Note.svelte", text: '<p class="border-b border-accent">' },
+    { name: "Tab.svelte", text: "<a class='hover:decoration-accent underline'>" },
+    { name: "Box.svelte", text: '<input class="accent-accent" type="checkbox">' },
+    { name: "Fine.svelte", text: '<p class="border-accent-edge bg-accent text-accent-text ring-accent-edge accent-accent-edge">' },
+  ];
+  assert.deepEqual(accentLineProblems(files), [
+    "Note.svelte:1: border-accent",
+    "Tab.svelte:1: decoration-accent",
+    "Box.svelte:1: accent-accent",
+  ]);
+});
+
 test("app.html has to read both keys before the first paint", () => {
   const html = 'localStorage.getItem("honk:theme"); localStorage.getItem("honk:palette");';
   assert.deepEqual(prePaintProblems(html, "honk"), []);
