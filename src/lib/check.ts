@@ -81,11 +81,14 @@ function parseRules(source: string): Rule[] {
   return rules;
 }
 
-const ATTRIBUTE = /\[([a-z-]+)(\^?=)"([^"]*)"\]/g;
+// An attribute selector on the root, its value in either quote: formatters write single quotes in
+// CSS when a project asks them to, and a rule this can't read would be dropped from the cascade
+// without a word, so its colors would never be checked.
+const ATTRIBUTE = /\[([a-z-]+)(\^?=)(["'])(.*?)\3\]/g;
 
 /**
  * Matches the selector shapes used on the root: `:root`, attribute selectors (`[data-x="y"]`,
- * `[data-x^="y"]`) and `:not([...])`. Anything else doesn't match, which leaves out rules for
+ * `[data-x^='y']`, in either quote) and `:not([...])`. Anything else doesn't match, which leaves out rules for
  * other elements and for special windows (like `:root.popover`). Returns the selector's
  * specificity, or null when it doesn't match.
  */
@@ -104,10 +107,10 @@ function match(selector: string, attributes: Record<string, string>): number | n
     const found = new RegExp(ATTRIBUTE.source).exec(inner);
     if (!found) return "?";
     specificity++;
-    if (test(found[1], found[2], found[3])) specificity = -Infinity;
+    if (test(found[1], found[2], found[4])) specificity = -Infinity;
     return "";
   });
-  rest = rest.replace(ATTRIBUTE, (_, name: string, operator: string, value: string) => {
+  rest = rest.replace(ATTRIBUTE, (_, name: string, operator: string, _quote: string, value: string) => {
     specificity++;
     if (!test(name, operator, value)) specificity = -Infinity;
     return "";
@@ -297,15 +300,26 @@ export function codeColorProblems(css: string, codeColors: typeof CODE_COLORS = 
  * The contrast checks only cover `--accent-edge` if lines use it, so a border, outline,
  * underline or shadow in the accent color has to name `--accent-edge`, not `--accent`. So does
  * `accent-color`: a checked box, radio button or slider shows a state, and light Rhodonite's
- * pink is far too faint for that on white. Takes the application's stylesheets and components;
- * returns `file:line: text` for each offender.
+ * pink is far too faint for that on white. Lines are found written both ways: as CSS
+ * declarations (`border: 1px solid var(--accent)`) and as Tailwind classes that draw one
+ * (`border-accent`, `border-b-accent`, `ring-accent`, `decoration-accent`, `divide-accent`,
+ * `outline-accent`, `shadow-accent`, `accent-accent`), where `-accent-edge` is the one to use.
+ * Takes the application's stylesheets and components; returns `file:line: text` for each
+ * offender: the declaration, or the class.
  */
 export function accentLineProblems(files: { name: string; text: string }[]): string[] {
-  const line = /(border[a-z-]*|outline[a-z-]*|text-decoration[a-z-]*|box-shadow|accent-color)\s*:[^;]*var\(--accent\)/;
+  const declaration = /(border[a-z-]*|outline[a-z-]*|text-decoration[a-z-]*|box-shadow|accent-color)\s*:[^;]*var\(--accent\)/;
+  // A line-drawing utility ending in plain `-accent`, as a whole class: after a space, a quote, a
+  // backtick or a variant's colon, and not followed by more of a name (so `-accent-edge` passes).
+  const utility = /(?:^|[\s"'`:])((?:border|outline|ring|decoration|divide|shadow|accent)(?:-[trblxyse])?-accent)(?![\w-])/;
   const problems: string[] = [];
   for (const { name, text } of files) {
     text.split("\n").forEach((content, index) => {
-      if (line.test(content)) problems.push(`${name}:${index + 1}: ${content.trim()}`);
+      if (declaration.test(content)) problems.push(`${name}:${index + 1}: ${content.trim()}`);
+      else {
+        const found = utility.exec(content);
+        if (found) problems.push(`${name}:${index + 1}: ${found[1]}`);
+      }
     });
   }
   return problems;

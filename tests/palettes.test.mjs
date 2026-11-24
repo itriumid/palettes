@@ -43,6 +43,14 @@ test("the check catches text that's too faint", () => {
   assert.ok(problems.some((problem) => problem.includes("catppuccin-mocha") && problem.includes("--muted on --bg")), problems.join("\n"));
 });
 
+test("the check reads theme rules written with single quotes, as formatters often write them", () => {
+  const faint = (quote) => `${css}:root[data-theme=${quote}light${quote}] { --muted: #aaaaaa; }`;
+  assert.ok(paletteProblems(faint('"')).length > 0);
+  assert.deepEqual(paletteProblems(faint("'")), paletteProblems(faint('"')));
+  const notDark = `${css}:root:not([data-theme='dark']) { --text: #eeeeee; }`;
+  assert.ok(paletteProblems(notDark).some((problem) => problem.includes("--text")));
+});
+
 test("the check catches a tint too strong for the text on it", () => {
   const strong = `${css}\n:root[data-palette="catppuccin-frappe"] { --tint-strength: 90%; }`;
   assert.ok(paletteProblems(strong).some((problem) => problem.includes("catppuccin-frappe") && problem.includes("accent tint")));
@@ -67,6 +75,20 @@ test("accent lines and accent-color have to use --accent-edge", () => {
   assert.deepEqual(accentLineProblems(files), [
     "Pad.svelte:2: border: 1px solid var(--accent);",
     "Form.svelte:2: accent-color: var(--accent);",
+  ]);
+});
+
+test("accent lines written as Tailwind classes have to use -accent-edge too", () => {
+  const files = [
+    { name: "Note.svelte", text: '<p class="border-b border-accent">' },
+    { name: "Tab.svelte", text: "<a class='hover:decoration-accent underline'>" },
+    { name: "Box.svelte", text: '<input class="accent-accent" type="checkbox">' },
+    { name: "Fine.svelte", text: '<p class="border-accent-edge bg-accent text-accent-text ring-accent-edge accent-accent-edge">' },
+  ];
+  assert.deepEqual(accentLineProblems(files), [
+    "Note.svelte:1: border-accent",
+    "Tab.svelte:1: decoration-accent",
+    "Box.svelte:1: accent-accent",
   ]);
 });
 
