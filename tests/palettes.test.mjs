@@ -43,6 +43,14 @@ test("the check catches text that's too faint", () => {
   assert.ok(problems.some((problem) => problem.includes("catppuccin-mocha") && problem.includes("--muted on --bg")), problems.join("\n"));
 });
 
+test("the check reads theme rules written with single quotes, as formatters often write them", () => {
+  const faint = (quote) => `${css}:root[data-theme=${quote}light${quote}] { --muted: #aaaaaa; }`;
+  assert.ok(paletteProblems(faint('"')).length > 0);
+  assert.deepEqual(paletteProblems(faint("'")), paletteProblems(faint('"')));
+  const notDark = `${css}:root:not([data-theme='dark']) { --text: #eeeeee; }`;
+  assert.ok(paletteProblems(notDark).some((problem) => problem.includes("--text")));
+});
+
 test("the check catches a tint too strong for the text on it", () => {
   const strong = `${css}\n:root[data-palette="catppuccin-frappe"] { --tint-strength: 90%; }`;
   assert.ok(paletteProblems(strong).some((problem) => problem.includes("catppuccin-frappe") && problem.includes("accent tint")));

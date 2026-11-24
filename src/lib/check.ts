@@ -81,11 +81,14 @@ function parseRules(source: string): Rule[] {
   return rules;
 }
 
-const ATTRIBUTE = /\[([a-z-]+)(\^?=)"([^"]*)"\]/g;
+// An attribute selector on the root, its value in either quote: formatters write single quotes in
+// CSS when a project asks them to, and a rule this can't read would be dropped from the cascade
+// without a word, so its colors would never be checked.
+const ATTRIBUTE = /\[([a-z-]+)(\^?=)(["'])(.*?)\3\]/g;
 
 /**
  * Matches the selector shapes used on the root: `:root`, attribute selectors (`[data-x="y"]`,
- * `[data-x^="y"]`) and `:not([...])`. Anything else doesn't match, which leaves out rules for
+ * `[data-x^='y']`, in either quote) and `:not([...])`. Anything else doesn't match, which leaves out rules for
  * other elements and for special windows (like `:root.popover`). Returns the selector's
  * specificity, or null when it doesn't match.
  */
@@ -104,10 +107,10 @@ function match(selector: string, attributes: Record<string, string>): number | n
     const found = new RegExp(ATTRIBUTE.source).exec(inner);
     if (!found) return "?";
     specificity++;
-    if (test(found[1], found[2], found[3])) specificity = -Infinity;
+    if (test(found[1], found[2], found[4])) specificity = -Infinity;
     return "";
   });
-  rest = rest.replace(ATTRIBUTE, (_, name: string, operator: string, value: string) => {
+  rest = rest.replace(ATTRIBUTE, (_, name: string, operator: string, _quote: string, value: string) => {
     specificity++;
     if (!test(name, operator, value)) specificity = -Infinity;
     return "";
