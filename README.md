@@ -110,8 +110,12 @@ test("every palette meets level AA as we use it", () => {
 });
 ```
 
-`accentLineProblems` takes your stylesheets and components, and `prePaintProblems` takes
-`app.html` and your prefix. Each returns a list of what's wrong, empty when everything passes.
+`paletteProblems` reads your theme rules in either quote (`[data-theme="light"]` or
+`[data-theme='light']`), so a formatter's choice doesn't hide them. `accentLineProblems` takes
+your stylesheets and components, and finds a pink line written either way: a CSS declaration in
+`var(--accent)`, or a Tailwind class that draws one (`border-accent`, `ring-accent`,
+`decoration-accent`, `accent-accent` and the like), where `-accent-edge` is the one to use.
+`prePaintProblems` takes `app.html` and your prefix. Each returns a list of what's wrong, empty when everything passes.
 In Node, import the palette list from `@itrium/palettes/palettes`; the main entry includes the
 Svelte components, which only a bundler can load.
 
