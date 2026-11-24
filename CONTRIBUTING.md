@@ -55,7 +55,15 @@ what to use instead.
 
 3. `release.yml` checks the tag matches `package.json`, runs the checks again, and publishes to
    npm through trusted publishing, with a provenance attestation.
-4. Update the applications in pull requests of their own, so their checks run on the new
+4. Create the release on GitHub, with notes generated from the pull requests since the last
+   version, grouped by their `type:` labels (`.github/release.yml`; chores are left out). Read
+   them before publishing, and add a line for anything an application has to do:
+
+   ```sh
+   gh release create v0.2.0 --verify-tag --generate-notes --title "Palettes 0.2.0"
+   ```
+
+5. Update the applications in pull requests of their own, so their checks run on the new
    version.
 
 **The first version** can't use trusted publishing, because npm only lets a package that
